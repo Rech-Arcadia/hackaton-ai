@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Rech-Arcadia/hackaton-ai#readme",
   "dependencies": {
-    "@interledger/open-payments": "^7.1.3"
+    "@interledger/open-payments": "^7.1.3",
+    "express": "^5.1.0"
   }
 }

@@ -1,0 +1,453 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interledger Payment Interface</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 1.1rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            text-align: center;
+            display: none;
+        }
+
+        .status.success {
+            background: rgba(76, 175, 80, 0.1);
+            border: 2px solid #4CAF50;
+            color: #2E7D32;
+        }
+
+        .status.error {
+            background: rgba(244, 67, 54, 0.1);
+            border: 2px solid #f44336;
+            color: #C62828;
+        }
+
+        .status.info {
+            background: rgba(33, 150, 243, 0.1);
+            border: 2px solid #2196F3;
+            color: #1565C0;
+        }
+
+        .authorization-section {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(255, 193, 7, 0.1);
+            border-radius: 15px;
+            border: 2px solid #FFC107;
+        }
+
+        .auth-link {
+            display: inline-block;
+            margin: 15px 0;
+            padding: 12px 25px;
+            background: #FFC107;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .auth-link:hover {
+            background: #FFB300;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .preset-wallets {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .preset-wallet {
+            padding: 8px 12px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .preset-wallet:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .amount-suggestions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .amount-suggestion {
+            padding: 8px 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .amount-suggestion:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .payment-info {
+            background: rgba(102, 126, 234, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .payment-info h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .payment-info p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Interledger Payment</h1>
+        
+        <form id="paymentForm">
+            <div class="form-group">
+                <label for="receivingWallet">📨 Wallet de Destino</label>
+                <input type="url" id="receivingWallet" placeholder="https://ilp.interledger-test.dev/wallet_destino" required>
+                <div class="preset-wallets">
+                    <div class="preset-wallet" onclick="setReceivingWallet('https://ilp.interledger-test.dev/p2_uvm')">P2 UVM</div>
+                    <div class="preset-wallet" onclick="setReceivingWallet('https://ilp.interledger-test.dev/p3_uvm')">P3 UVM</div>
+                    <div class="preset-wallet" onclick="setReceivingWallet('https://ilp.interledger-test.dev/p4_uvm')">P4 UVM</div>
+                    <div class="preset-wallet" onclick="setReceivingWallet('https://ilp.interledger-test.dev/p5_uvm')">P5 UVM</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="amount">💵 Cantidad</label>
+                <input type="number" id="amount" placeholder="1000" min="1" required>
+                <div class="amount-suggestions">
+                    <div class="amount-suggestion" onclick="setAmount('100')">100</div>
+                    <div class="amount-suggestion" onclick="setAmount('500')">500</div>
+                    <div class="amount-suggestion" onclick="setAmount('1000')">1000</div>
+                    <div class="amount-suggestion" onclick="setAmount('5000')">5000</div>
+                </div>
+            </div>
+
+            <button type="submit" class="button" id="initiatePayment">
+                🚀 Iniciar Pago
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Procesando pago...</p>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="payment-info" id="paymentInfo">
+            <h4>📊 Información del Pago</h4>
+            <p><strong>Cantidad:</strong> <span id="infoAmount"></span></p>
+            <p><strong>Destino:</strong> <span id="infoDestination"></span></p>
+            <p><strong>Débito:</strong> <span id="infoDebit"></span></p>
+        </div>
+
+        <div class="authorization-section" id="authSection">
+            <h3>⚠️ Autorización Requerida</h3>
+            <p>Necesitas autorizar este pago haciendo clic en el enlace de abajo:</p>
+            <a href="#" id="authLink" class="auth-link" target="_blank">🔗 Autorizar Pago</a>
+            <p style="margin-top: 15px; color: #666;">Después de autorizar el pago, regresa aquí y haz clic en "Completar Pago"</p>
+            <button type="button" class="button" id="completePayment" style="margin-top: 15px;">
+                ✅ Completar Pago
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+
+        // Funciones auxiliares
+        function setReceivingWallet(url) {
+            document.getElementById('receivingWallet').value = url;
+        }
+
+        function setAmount(value) {
+            document.getElementById('amount').value = value;
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'block';
+        }
+
+        function showLoading(show = true) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('initiatePayment').disabled = show;
+            document.getElementById('completePayment').disabled = show;
+        }
+
+        function showAuthSection(show = true, authUrl = '') {
+            const authSection = document.getElementById('authSection');
+            const authLink = document.getElementById('authLink');
+            
+            authSection.style.display = show ? 'block' : 'none';
+            if (authUrl) {
+                authLink.href = authUrl;
+            }
+        }
+
+        function showPaymentInfo(amount, destination, debitAmount) {
+            document.getElementById('infoAmount').textContent = amount;
+            document.getElementById('infoDestination').textContent = destination;
+            document.getElementById('infoDebit').textContent = `${debitAmount.value} ${debitAmount.assetCode}`;
+            document.getElementById('paymentInfo').style.display = 'block';
+        }
+
+        // Manejo del formulario principal
+        document.getElementById('paymentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const receivingWallet = document.getElementById('receivingWallet').value;
+            const amount = document.getElementById('amount').value;
+
+            try {
+                showLoading(true);
+                showStatus('Iniciando proceso de pago...', 'info');
+                showAuthSection(false);
+                document.getElementById('paymentInfo').style.display = 'none';
+
+                const response = await fetch('/api/initiate-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        receivingWallet,
+                        amount: parseInt(amount)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Error en la solicitud');
+                }
+
+                currentSessionId = result.sessionId;
+                showLoading(false);
+
+                if (result.authorizationUrl) {
+                    showStatus('✅ Pago preparado. Necesita autorización.', 'info');
+                    showPaymentInfo(amount, receivingWallet, result.debitAmount);
+                    showAuthSection(true, result.authorizationUrl);
+                } else {
+                    showStatus('❌ Error: No se recibió URL de autorización', 'error');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('❌ Error: ' + error.message, 'error');
+                showLoading(false);
+            }
+        });
+
+        // Completar el proceso de pago
+        document.getElementById('completePayment').addEventListener('click', async function() {
+            if (!currentSessionId) {
+                showStatus('❌ Error: No hay sesión activa', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                showStatus('Finalizando pago...', 'info');
+
+                const response = await fetch('/api/complete-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sessionId: currentSessionId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Error completando el pago');
+                }
+
+                showLoading(false);
+                showAuthSection(false);
+                showStatus(`✅ ¡Pago completado exitosamente! ID: ${result.outgoingPayment.id}`, 'success');
+                
+                // Limpiar el formulario
+                document.getElementById('paymentForm').reset();
+                currentSessionId = null;
+                document.getElementById('paymentInfo').style.display = 'none';
+
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('❌ Error completando pago: ' + error.message, 'error');
+                showLoading(false);
+            }
+        });
+
+        // Valores predeterminados
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('receivingWallet').value = 'https://ilp.interledger-test.dev/p3_uvm';
+            document.getElementById('amount').value = '1000';
+        });
+    </script>
+</body>
+</html>
