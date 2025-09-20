@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#667eea" />
+    <meta name="description" content="Sistema de pagos usando Interledger Open Payments API" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Interledger Payments - Open Payments API</title>
+    <style>
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      }
+      
+      /* Loading inicial */
+      #root {
+        min-height: 100vh;
+      }
+      
+      .loading-initial {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      
+      .loading-initial .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top: 3px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .loading-initial h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+      
+      .loading-initial p {
+        opacity: 0.8;
+        font-size: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>
+      <div style="padding: 2rem; text-align: center; background: #f8f9fa;">
+        <h2>JavaScript Requerido</h2>
+        <p>Esta aplicación requiere JavaScript para funcionar correctamente.</p>
+        <p>Por favor, habilita JavaScript en tu navegador y recarga la página.</p>
+      </div>
+    </noscript>
+    <div id="root">
+      <!-- Loading inicial mientras React se carga -->
+      <div class="loading-initial">
+        <div class="spinner"></div>
+        <h1>Interledger Payments</h1>
+        <p>Cargando aplicación...</p>
+      </div>
+    </div>
+    
+    <!-- Eliminar loading inicial una vez que React se monte -->
+    <script>
+      // Este script se ejecuta antes de que React se monte
+      document.addEventListener('DOMContentLoaded', function() {
+        // Dar tiempo a React para montar
+        setTimeout(function() {
+          const loadingDiv = document.querySelector('.loading-initial');
+          if (loadingDiv && document.querySelector('.App')) {
+            loadingDiv.remove();
+          }
+        }, 500);
+      });
+    </script>
+  </body>
+</html>
